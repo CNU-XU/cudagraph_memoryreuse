@@ -4,8 +4,8 @@
 #include <iostream>
 
 
-#define LOOPTIMES 30
-#define SIZE 512*1024*1024
+#define LOOPTIMES 1000
+#define SIZE (long long)1024*1024*1024
 
 
 struct usageStatistics {
@@ -199,7 +199,286 @@ cudaError_t test1() {
     }
     return cudaSuccess;
 }
+
 cudaError_t test2() {
+    std::cout << "upload the graph before launch in this test" << std::endl << std::endl;
+    int device = 0;
+    cudaError_t cudaStatus;
+    int* d_a = NULL;
+    int* d_b = NULL;
+    cudaStream_t stream;
+    cudaStatus = cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamCreateWithFlags failed!");
+        return cudaErrorInvalidValue;
+    }
+    float time = 0.0f;
+    cudaEvent_t start, stop;
+    cudaStatus = cudaEventCreate(&start);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventCreate failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaEventCreate(&stop);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventCreate failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaGraph_t graph,graph1;
+    cudaGraphExec_t graphExec,graphExec1;
+
+    float kernelTime = 50;  // time for each thread to run in microseconds
+    cudaDeviceProp deviceProp;
+    cudaStatus = cudaGetDeviceProperties(&deviceProp, device);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGetDeviceProperties failed!");
+        return cudaErrorInvalidValue;
+    }
+    clock_t time_clocks = (clock_t)((kernelTime / 1000.0) * deviceProp.clockRate);
+
+
+    cudaStatus = cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamBeginCapture failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaMallocAsync((void**)&d_a, SIZE, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMallocAsync failed!");
+        return cudaErrorInvalidValue;
+    }
+    clockBlock << <1, 1, 0, stream >> > (time_clocks);
+    cudaStatus = cudaFreeAsync(d_a, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaFreeAsync failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaStreamEndCapture(stream, &graph);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamEndCapture failed!");
+        return cudaErrorInvalidValue;
+    }
+
+    cudaStatus = cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0);//instantiate graph
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphInstantiate failed!");
+        return cudaErrorInvalidValue;
+    }
+
+    cudaStatus = cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamBeginCapture failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaMallocAsync((void**)&d_b, SIZE, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMallocAsync failed!");
+        return cudaErrorInvalidValue;
+    }
+    clockBlock << <1, 1, 0, stream >> > (time_clocks);
+    cudaStatus = cudaFreeAsync(d_b, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaFreeAsync failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaStreamEndCapture(stream, &graph);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamEndCapture failed!");
+        return cudaErrorInvalidValue;
+    }
+
+    cudaStatus = cudaGraphInstantiate(&graphExec1, graph1, NULL, NULL, 0);//instantiate graph
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphInstantiate failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaGraphUpload(graphExec, stream);//upload graph 
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphUpload failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaGraphUpload(graphExec1, stream);//upload graph 
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphUpload failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaEventRecord(start, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventRecord failed!");
+        return cudaErrorInvalidValue;
+    }
+    std::cout<<"launch different graph in same stream"<<std::endl;
+    for (int i = 0; i < LOOPTIMES; i++) {
+        cudaStatus = cudaGraphLaunch(graphExec, stream);//launch graph
+        cudaStatus = cudaGraphLaunch(graphExec1, stream);//launch graph
+        if (cudaStatus != cudaSuccess) {
+            fprintf(stderr, "cudaGraphLaunch failed!");
+            return cudaErrorInvalidValue;
+        }
+    }
+
+    cudaStatus = cudaEventRecord(stop, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventRecord failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaEventSynchronize(stop);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventSynchronize failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaEventElapsedTime(&time, start, stop);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventElapsedTime failed!");
+        return cudaErrorInvalidValue;
+    }
+    printf("time is %f\n\n", time);
+    cudaStatus = cudaGraphDestroy(graph);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphDestroy failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaGraphExecDestroy(graphExec);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphExecDestroy failed!");
+        return cudaErrorInvalidValue;
+    }
+     cudaStatus = cudaGraphDestroy(graph1);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphDestroy failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaGraphExecDestroy(graphExec1);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphExecDestroy failed!");
+        return cudaErrorInvalidValue;
+    cudaStatus = cudaStreamDestroy(stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamDestroy failed!");
+        return cudaErrorInvalidValue;
+    }
+    return cudaSuccess;
+}
+
+cudaError_t test3() {
+    std::cout << "upload the graph before launch in this test" << std::endl << std::endl;
+    int device = 0;
+    cudaError_t cudaStatus;
+    int* d_a = NULL;
+    cudaStream_t stream;
+    cudaStatus = cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamCreateWithFlags failed!");
+        return cudaErrorInvalidValue;
+    }
+    float time = 0.0f;
+    cudaEvent_t start, stop;
+    cudaStatus = cudaEventCreate(&start);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventCreate failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaEventCreate(&stop);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventCreate failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaGraph_t graph;
+    cudaGraphExec_t graphExec;
+
+    float kernelTime = 50;  // time for each thread to run in microseconds
+    cudaDeviceProp deviceProp;
+    cudaStatus = cudaGetDeviceProperties(&deviceProp, device);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGetDeviceProperties failed!");
+        return cudaErrorInvalidValue;
+    }
+    clock_t time_clocks = (clock_t)((kernelTime / 1000.0) * deviceProp.clockRate);
+
+
+    cudaStatus = cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamBeginCapture failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaMallocAsync((void**)&d_a, SIZE, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMallocAsync failed!");
+        return cudaErrorInvalidValue;
+    }
+    clockBlock << <1, 1, 0, stream >> > (time_clocks);
+    cudaStatus = cudaFreeAsync(d_a, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaFreeAsync failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaStreamEndCapture(stream, &graph);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamEndCapture failed!");
+        return cudaErrorInvalidValue;
+    }
+
+    cudaStatus = cudaGraphInstantiate(&graphExec, graph, NULL, NULL, 0);//instantiate graph
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphInstantiate failed!");
+        return cudaErrorInvalidValue;
+    }
+    
+    cudaStatus = cudaGraphUpload(graphExec, stream);//upload graph 
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphUpload failed!");
+        return cudaErrorInvalidValue;
+    }
+    std::cout<<"launch same graph in same stream"<<std::endl;
+    cudaStatus = cudaEventRecord(start, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventRecord failed!");
+        return cudaErrorInvalidValue;
+    }
+    for (int i = 0; i < 2*LOOPTIMES; i++) {
+        cudaStatus = cudaGraphLaunch(graphExec, stream);//launch graph
+        if (cudaStatus != cudaSuccess) {
+            fprintf(stderr, "cudaGraphLaunch failed!");
+            return cudaErrorInvalidValue;
+        }
+    }
+
+    cudaStatus = cudaEventRecord(stop, stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventRecord failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaEventSynchronize(stop);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventSynchronize failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaEventElapsedTime(&time, start, stop);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaEventElapsedTime failed!");
+        return cudaErrorInvalidValue;
+    }
+    printf("time is %f\n\n", time);
+    cudaStatus = cudaGraphDestroy(graph);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphDestroy failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaGraphExecDestroy(graphExec);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphExecDestroy failed!");
+        return cudaErrorInvalidValue;
+    }
+    cudaStatus = cudaStreamDestroy(stream);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaStreamDestroy failed!");
+        return cudaErrorInvalidValue;
+    }
+    return cudaSuccess;
+}
+
+
+cudaError_t test4() {
     std::cout << "Upload the graph before launch in this test" << std::endl << std::endl;
     int device = 0;
     cudaError_t cudaStatus;
@@ -382,7 +661,9 @@ int main(int argc, char** argv)
     std::cout << std::endl << "This code tests: upload separates memory allocation and mapping from launch" << std::endl << std::endl;
 
     cudaStatus = test1(); //no upload
-    //cudaStatus = test2(); //upload
+    cudaStatus = test2(); //upload launch different graph in same stream
+    cudaStatus = test3(); //upload launch same graph in same stream
+    cudaStatus = test4(); //upload
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "test failed!");
         return 1;

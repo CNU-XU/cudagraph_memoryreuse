@@ -290,7 +290,8 @@ endif
 # Target rules
 all: build
 
-build: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+build: ImprovedOfMemReuseInOneStream MemPoolGranularity FragmentsOfMemPool AllocFreeNodeOrderImpact MemFootprintOfDifferentNewAllocSize  NodesReuse1Node  GraphUnusedMemNotReleaseAfterSync  HowMemPoolThresholdWork  PerformanceOfSetThreshold  SetThreshodNotAffectPhysicalMem  GraphMemPoolIsDifferentFromSOMA  DifferentGraphShareOneMemPool GraphMemReuse GraphMemShouldNotFrequentTrim GraphUploadReduceLaunchOverhead
+
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -299,93 +300,81 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-1: 1.o
+ImprovedOfMemReuseInOneStream: ImprovedOfMemReuseInOneStream.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-1.o:1.cu
+ImprovedOfMemReuseInOneStream.o:ImprovedOfMemReuseInOneStream.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-2: 2.o
+MemPoolGranularity:MemPoolGranularity.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-2.o:2.cu
+MemPoolGranularity.o:MemPoolGranularity.cu 
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-3: 3.o
+FragmentsOfMemPool:FragmentsOfMemPool.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-3.o:3.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-
-4: 4.o
-	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-4.o:4.cu
+FragmentsOfMemPool.o:FragmentsOfMemPool.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-5: 5.o
+AllocFreeNodeOrderImpact:AllocFreeNodeOrderImpact.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-5.o:5.cu
+AllocFreeNodeOrderImpact.o:AllocFreeNodeOrderImpact.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-6: 6.o
+MemFootprintOfDifferentNewAllocSize: MemFootprintOfDifferentNewAllocSize.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-6.o:6.cu
+MemFootprintOfDifferentNewAllocSize.o:MemFootprintOfDifferentNewAllocSize.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-7: 7.o
+NodesReuse1Node:NodesReuse1Node.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-7.o:7.cu
+NodesReuse1Node.o:NodesReuse1Node.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-8: 8.o
+GraphUnusedMemNotReleaseAfterSync:GraphUnusedMemNotReleaseAfterSync.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-8.o:8.cu
+GraphUnusedMemNotReleaseAfterSync.o:GraphUnusedMemNotReleaseAfterSync.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-9: 9.o
+HowMemPoolThresholdWork:HowMemPoolThresholdWork.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-9.o:9.cu
+HowMemPoolThresholdWork.o:HowMemPoolThresholdWork.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-10: 10.o
+PerformanceOfSetThreshold:PerformanceOfSetThreshold.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-10.o:10.cu
+PerformanceOfSetThreshold.o:PerformanceOfSetThreshold.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-11: 11.o
+SetThreshodNotAffectPhysicalMem:SetThreshodNotAffectPhysicalMem.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-11.o:11.cu
+SetThreshodNotAffectPhysicalMem.o:SetThreshodNotAffectPhysicalMem.cu 
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-12: 12.o
+GraphMemPoolIsDifferentFromSOMA:GraphMemPoolIsDifferentFromSOMA.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-12.o:12.cu
+GraphMemPoolIsDifferentFromSOMA.o:GraphMemPoolIsDifferentFromSOMA.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-13: 13.o
+DifferentGraphShareOneMemPool:DifferentGraphShareOneMemPool.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-13.o:13.cu
+DifferentGraphShareOneMemPool.o:DifferentGraphShareOneMemPool.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-14: 14.o
+
+GraphMemReuse:GraphMemReuse.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-14.o:14.cu
+GraphMemReuse.o:GraphMemReuse.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-15: 15.o
+GraphMemShouldNotFrequentTrim: GraphMemShouldNotFrequentTrim.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-15.o:15.cu
+GraphMemShouldNotFrequentTrim.o:GraphMemShouldNotFrequentTrim.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-16: 16.o
+GraphUploadReduceLaunchOverhead: GraphUploadReduceLaunchOverhead.o
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-16.o:16.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-17: 17.o
-	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-17.o:17.cu
-	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
-18: 18.o
-	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-18.o:18.cu
+GraphUploadReduceLaunchOverhead.o:GraphUploadReduceLaunchOverhead.cu
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 
 
 run: build
-	$(EXEC) ./1 $(EXEC) ./2 $(EXEC) ./3 $(EXEC) ./4 $(EXEC) ./5 $(EXEC) ./6 $(EXEC) ./7 $(EXEC) ./8 $(EXEC) ./9 $(EXEC) ./10 $(EXEC) ./11 $(EXEC) ./12 $(EXEC) ./13 $(EXEC) ./14 $(EXEC) ./15 $(EXEC) ./16 $(EXEC) ./17 $(EXEC) ./18
+	$(EXEC) ./ImprovedOfMemReuseInOneStream $(EXEC) ./MemPoolGranularity $(EXEC) ./FragmentsOfMemPool $(EXEC) ./AllocFreeNodeOrderImpact $(EXEC) ./MemFootprintOfDifferentNewAllocSize $(EXEC) ./NodesReuse1Node $(EXEC) ./GraphUnusedMemNotReleaseAfterSync $(EXEC) ./HowMemPoolThresholdWork $(EXEC) ./PerformanceOfSetThreshold $(EXEC) ./SetThreshodNotAffectPhysicalMem $(EXEC) ./GraphMemPoolIsDifferentFromSOMA $(EXEC) ./DifferentGraphShareOneMemPool $(EXEC) ./GraphMemReuse $(EXEC) ./GraphMemShouldNotFrequentTrim $(EXEC) ./GraphUploadReduceLaunchOverhead $(EXEC) 
 
 testrun: build
 
