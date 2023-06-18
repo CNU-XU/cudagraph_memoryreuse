@@ -281,7 +281,7 @@ cudaError_t test2() {
         fprintf(stderr, "cudaFreeAsync failed!");
         return cudaErrorInvalidValue;
     }
-    cudaStatus = cudaStreamEndCapture(stream, &graph);
+    cudaStatus = cudaStreamEndCapture(stream, &graph1);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaStreamEndCapture failed!");
         return cudaErrorInvalidValue;
@@ -352,6 +352,7 @@ cudaError_t test2() {
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaGraphExecDestroy failed!");
         return cudaErrorInvalidValue;
+    }
     cudaStatus = cudaStreamDestroy(stream);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaStreamDestroy failed!");
